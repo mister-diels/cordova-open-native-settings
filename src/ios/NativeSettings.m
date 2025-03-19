@@ -3,7 +3,13 @@
 @implementation NativeSettings
 
 - (BOOL)do_open:(NSString *)pref {
-    if ([[UIApplication sharedApplication] openURL:[NSURL URLWithString:pref]]) {
+    NSURL *url = [NSURL URLWithString:pref];
+    if ([[UIApplication sharedApplication] canOpenURL:url]) {
+        [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:^(BOOL success) {
+            if (!success) {
+                NSLog(@"Failed to open URL: %@", pref);
+            }
+        }];
         return YES;
     } else {
         return NO;
@@ -21,7 +27,6 @@
         prefix = @"app-settings:";
     }
 
-    
     if ([key isEqualToString:@"application_details"]) {
         result = [self do_open:UIApplicationOpenSettingsURLString];
     }
@@ -44,7 +49,7 @@
         result = [self do_open:[prefix stringByAppendingString:@"Brightness"]];
     }
     else if ([key isEqualToString:@"bluetooth"]) {
-            result = [self do_open:[prefix stringByAppendingString:@"Bluetooth"]];
+        result = [self do_open:[prefix stringByAppendingString:@"Bluetooth"]];
     }
     else if ([key isEqualToString:@"castle"]) {
         result = [self do_open:[prefix stringByAppendingString:@"CASTLE"]];
@@ -172,13 +177,13 @@
     else {
         pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Invalid Action"];
     }
-        
+
     if (result) {
         pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"Opened"];
     } else {
         pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"Cannot open"];
     }
-    
+
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
